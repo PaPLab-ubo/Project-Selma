@@ -1,0 +1,2501 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Management Dashboard - Futuristic</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --main-green: #00ff88;
+            --light-green: #00ff8820;
+            --dark-grey: #1a1a1a;
+            --border-color: #333333;
+            --blue-accent: #00a8ff;
+            --warning: #ffaa00;
+            --danger: #ff5555;
+            --card-bg: #2a2a2a;
+            --future-blue: #667eea;
+            --future-purple: #764ba2;
+            --neon-pink: #ff00ff;
+            --neon-cyan: #00ffff;
+            --dark-bg: #121212;
+            --glass-bg: rgba(30, 30, 30, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --purple-dot: #9b59b6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1a2e 100%);
+            margin: 0;
+            padding: 20px;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: var(--glass-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--main-green);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            background: linear-gradient(45deg, var(--main-green), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--main-green), #00cc66);
+            border: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--blue-accent), #0097e6);
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #ff3333);
+            border: none;
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, var(--future-purple), #9b59b6);
+            border: none;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            font-weight: 500;
+            font-size: 14px;
+            color: white;
+            min-width: 180px;
+        }
+
+        /* Optimized Layout */
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .main-section {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+        }
+
+        /* KPI Cards - Optimized */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 15px;
+            border-radius: 12px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--main-green);
+        }
+
+        .kpi-card h3 {
+            font-size: 11px;
+            margin: 0 0 8px 0;
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-card .kpi-value {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 5px 0;
+            background: linear-gradient(45deg, var(--main-green), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .kpi-card .kpi-change {
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        /* Section Boxes - Uniform Size */
+        .section-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            height: 420px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
+            color: white;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            flex-shrink: 0;
+        }
+
+        .section-title .section-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .section-title .action-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+
+        .section-title .action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Table Container - Optimized */
+        .table-container {
+            padding: 15px;
+            overflow: auto;
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ccc;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--glass-border);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            color: #ddd;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .project-name-link {
+            color: var(--blue-accent);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .project-name-link:hover {
+            color: var(--neon-cyan);
+            text-decoration: underline;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-running {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--main-green);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .status-upcoming {
+            background: rgba(255, 170, 0, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(255, 170, 0, 0.3);
+        }
+
+        .status-completed {
+            background: rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 8px;
+            width: 100%;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, var(--main-green), var(--neon-cyan));
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* CALENDAR - Updated for 100px */
+        .calendar-container {
+            padding: 15px;
+            overflow: auto;
+            flex: 1;
+            width: 100%;
+            height: 100px;
+            display: flex;
+            align-items: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        .cal-day-header {
+            background: rgba(102, 126, 234, 0.3);
+            padding: 4px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 9px;
+            color: #ddd;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .cal-day {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 2px;
+            font-size: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+        }
+
+        .cal-day:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .cal-day.today {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--main-green);
+        }
+
+        .cal-day.has-event {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .cal-day .event-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--purple-dot);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+        }
+
+        /* Habit Tracker - IMPROVED VISUAL COMMUNICATION */
+        .habit-tracker-container {
+            margin-top: 20px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .habit-tracker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            border-bottom: 1px solid var(--glass-border);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .habit-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .habit-month-display {
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--future-blue), var(--future-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* IMPROVED Habit Grid */
+        .improved-habit-grid {
+            display: grid;
+            grid-template-columns: 200px repeat(31, 35px);
+            overflow-x: auto;
+            font-size: 12px;
+            border-top: 1px solid var(--glass-border);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .habit-cell {
+            padding: 8px 5px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            transition: all 0.2s;
+        }
+
+        .habit-cell.header {
+            background: rgba(102, 126, 234, 0.2);
+            font-weight: 600;
+            color: #ddd;
+            font-size: 11px;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .habit-cell.task-name {
+            background: rgba(30, 30, 30, 0.9);
+            justify-content: flex-start;
+            font-size: 12px;
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            border-right: 2px solid var(--glass-border);
+            gap: 8px;
+        }
+
+        .habit-cell.day {
+            position: relative;
+            cursor: pointer;
+            padding: 2px;
+        }
+
+        .habit-cell.day:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .habit-cell.day.completed {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 200, 100, 0.3));
+            border: 1px solid rgba(0, 255, 136, 0.5);
+        }
+
+        .day-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--glass-border);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .day-checkbox.checked {
+            background: var(--main-green);
+            border-color: var(--main-green);
+            transform: scale(1.1);
+        }
+
+        .day-checkbox:hover {
+            border-color: var(--main-green);
+            transform: scale(1.05);
+        }
+
+        .day-checkbox i {
+            font-size: 12px;
+            color: white;
+        }
+
+        /* Project badge in habit tracker */
+        .project-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 9px;
+            background: rgba(102, 126, 234, 0.3);
+            color: #a0b0ff;
+            margin-left: 5px;
+        }
+
+        /* Monthly Stats - Improved */
+        .monthly-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            padding: 15px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--main-green);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            background: linear-gradient(45deg, var(--main-green), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: var(--glass-bg);
+            padding: 25px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-large {
+            max-width: 800px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #ddd;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--main-green);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* Task list in calendar modal */
+        .task-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .task-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Time tracking styles */
+        .time-track-btn {
+            background: rgba(0, 168, 255, 0.1);
+            border: 1px solid rgba(0, 168, 255, 0.3);
+            color: var(--blue-accent);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.3s;
+        }
+
+        .time-track-btn:hover {
+            background: rgba(0, 168, 255, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .kpi-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .section-box {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kpi-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .header-controls {
+                width: 100%;
+            }
+            
+            .filter-select {
+                min-width: 150px;
+            }
+            
+            .improved-habit-grid {
+                grid-template-columns: 150px repeat(31, 30px);
+                font-size: 10px;
+            }
+            
+            .habit-cell {
+                padding: 6px 3px;
+                min-height: 35px;
+            }
+            
+            .monthly-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .calendar-container {
+                height: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-row {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .dashboard-container {
+                padding: 15px;
+            }
+            
+            .improved-habit-grid {
+                grid-template-columns: 120px repeat(31, 25px);
+            }
+            
+            .monthly-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .calendar-container {
+                height: 140px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--main-green), var(--neon-cyan));
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--future-blue), var(--future-purple));
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div>
+            <h1><i class="fas fa-project-diagram"></i> PROJECT MANAGEMENT</h1>
+            <p style="color: #aaa; margin-top: 5px; font-size: 13px;">Pregled projekata i habit tracker - 2026</p>
+        </div>
+        <div class="header-controls">
+            <select class="filter-select" id="projectFilter">
+                <option value="all">Svi projekti</option>
+                <option value="running">Aktivni</option>
+                <option value="upcoming">Nadolazeći</option>
+                <option value="completed">Završeni</option>
+            </select>
+            <button class="btn btn-secondary" id="addProjectBtn">
+                <i class="fas fa-plus"></i> Novi projekt
+            </button>
+            <button class="btn btn-primary" id="exportExcel">
+                <i class="fas fa-file-excel"></i> Izvezi
+            </button>
+        </div>
+    </div>
+
+    <!-- KPI Cards - Updated with Time Spent -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <h3>Ukupno projekata</h3>
+            <div class="kpi-value" id="totalProjects">0</div>
+            <div class="kpi-change">+0 od prošlog mjeseca</div>
+        </div>
+        <div class="kpi-card">
+            <h3>Aktivni projekti</h3>
+            <div class="kpi-value" id="runningProjects">0</div>
+            <div class="kpi-change">Trenutno u izvršenju</div>
+        </div>
+        <div class="kpi-card">
+            <h3>Trenutno u izvršenju</h3>
+            <div class="kpi-value" id="inProgress">0</div>
+            <div class="kpi-change">Aktivni zadaci</div>
+        </div>
+        <div class="kpi-card">
+            <h3>Utrošeno vrijeme</h3>
+            <div class="kpi-value" id="timeSpent">0h</div>
+            <div class="kpi-change">Ukupno za sve projekte</div>
+        </div>
+        <div class="kpi-card">
+            <h3>Prosječno vrijeme</h3>
+            <div class="kpi-value" id="avgTime">0h</div>
+            <div class="kpi-change">Po projektu</div>
+        </div>
+        <div class="kpi-card">
+            <h3>Sedmični napredak</h3>
+            <div class="kpi-value" id="weeklyProgress">0%</div>
+            <div class="kpi-change">Ova sedmica</div>
+        </div>
+    </div>
+
+    <!-- Main Content - Calendar and Projects -->
+    <div class="dashboard-content">
+        <!-- Project Overview -->
+        <div class="main-section">
+            <div class="section-box">
+                <div class="section-title">
+                    <span><i class="fas fa-table"></i> PREGLED PROJEKATA</span>
+                    <div class="section-actions">
+                        <button class="action-btn" id="sortByDate" title="Sortiraj po datumu">
+                            <i class="fas fa-calendar-alt"></i>
+                        </button>
+                        <button class="action-btn" id="sortByProgress" title="Sortiraj po napretku">
+                            <i class="fas fa-sort-amount-up"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="projectsTable">
+                        <thead>
+                            <tr>
+                                <th>Projekt</th>
+                                <th>Početak</th>
+                                <th>Završetak</th>
+                                <th>Napredak</th>
+                                <th>Utrošeno vrijeme</th>
+                                <th>Status</th>
+                                <th>Akcije</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Projects will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar - Fixed 100px -->
+        <div class="main-section">
+            <div class="section-box">
+                <div class="section-title">
+                    <span><i class="fas fa-calendar-alt"></i> KALENDAR - <span id="currentMonthYear">JANUAR 2026</span></span>
+                    <div class="section-actions">
+                        <button class="action-btn" id="prevMonth" title="Prethodni mjesec">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="action-btn" id="nextMonth" title="Sljedeći mjesec">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-container">
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMPROVED Habit Tracker -->
+    <div class="habit-tracker-container">
+        <div class="habit-tracker-header">
+            <div class="habit-controls">
+                <select class="filter-select" id="habitProjectFilter" style="width: 180px;">
+                    <option value="all">Svi projekti</option>
+                    <!-- Project options will be populated by JavaScript -->
+                </select>
+                
+                <select class="filter-select" id="habitMonthSelect" style="width: 120px;">
+                    <option value="0">Januar</option>
+                    <option value="1">Februar</option>
+                    <option value="2">Mart</option>
+                    <option value="3">April</option>
+                    <option value="4">Maj</option>
+                    <option value="5">Juni</option>
+                    <option value="6">Juli</option>
+                    <option value="7">Avgust</option>
+                    <option value="8">Septembar</option>
+                    <option value="9">Oktobar</option>
+                    <option value="10">Novembar</option>
+                    <option value="11">Decembar</option>
+                </select>
+                
+                <select class="filter-select" id="habitYearSelect" style="width: 100px;">
+                    <option>2024</option>
+                    <option>2025</option>
+                    <option selected>2026</option>
+                    <option>2027</option>
+                </select>
+                
+                <input type="text" class="form-control" id="newHabitTask" 
+                       placeholder="Novi zadatak..." 
+                       style="width: 180px; padding: 8px;"
+                       onkeypress="if(event.key === 'Enter') addHabitTask()">
+                
+                <button class="btn btn-purple" onclick="addHabitTask()" style="padding: 8px 12px;">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <div class="habit-month-display" id="habitMonthDisplay">
+                Januar 2026
+            </div>
+        </div>
+        
+        <!-- Improved Habit Grid -->
+        <div class="improved-habit-grid" id="improvedHabitGrid">
+            <!-- Habit grid will be populated by JavaScript -->
+        </div>
+        
+        <!-- Monthly Stats -->
+        <div class="monthly-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="monthlyCompletion">0%</div>
+                <div class="stat-label">MJESEČNI PROGRES</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalTasks">0</div>
+                <div class="stat-label">UKUPNO ZADATAKA</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="completedDays">0</div>
+                <div class="stat-label">DANA U REDU</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="consistency">0%</div>
+                <div class="stat-label">KONZISTENTNOST</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--glass-border); text-align: center; color: #777; font-size: 12px;">
+        <p><strong>Project Management Dashboard</strong> • Ažurirano: <span id="currentDate"></span></p>
+    </div>
+</div>
+
+<!-- Modal for adding new project -->
+<div class="modal" id="projectModal">
+    <div class="modal-content">
+        <h2 style="margin-top: 0; color: var(--main-green);"><i class="fas fa-plus-circle"></i> Novi projekt</h2>
+        <form id="projectForm">
+            <div class="form-group">
+                <label for="projectName">Naziv projekta *</label>
+                <input type="text" id="projectName" class="form-control" required placeholder="Unesite naziv projekta">
+            </div>
+            <div class="form-group">
+                <label for="projectDescription">Opis projekta</label>
+                <textarea id="projectDescription" class="form-control" rows="3" placeholder="Unesite opis projekta"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="projectStart">Datum i vrijeme početka *</label>
+                <input type="datetime-local" id="projectStart" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="projectEnd">Datum i vrijeme završetka *</label>
+                <input type="datetime-local" id="projectEnd" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="projectProgress">Početni napredak (%)</label>
+                <input type="range" id="projectProgress" class="form-control" min="0" max="100" value="0">
+                <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                    <span>0%</span>
+                    <span id="progressValue">0%</span>
+                    <span>100%</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="projectStatus">Status</label>
+                <select id="projectStatus" class="form-control">
+                    <option value="running">Aktivan</option>
+                    <option value="upcoming">Nadolazeći</option>
+                    <option value="completed">Završen</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="projectCategory">Kategorija</label>
+                <select id="projectCategory" class="form-control">
+                    <option value="Posao">Posao</option>
+                    <option value="Osobni">Osobni</option>
+                    <option value="Edukacija">Edukacija</option>
+                    <option value="Zdravlje">Zdravlje</option>
+                    <option value="Financije">Financije</option>
+                    <option value="Ostalo">Ostalo</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn" style="background: rgba(255, 255, 255, 0.1);" id="cancelProject">Odustani</button>
+                <button type="submit" class="btn btn-primary">Dodaj projekt</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for adding subproject -->
+<div class="modal" id="subprojectModal">
+    <div class="modal-content">
+        <h2 style="margin-top: 0; color: var(--main-green);"><i class="fas fa-sitemap"></i> Novi podprojekt</h2>
+        <form id="subprojectForm">
+            <input type="hidden" id="parentProjectId">
+            
+            <div class="form-group">
+                <label for="subprojectName">Naziv podprojekta *</label>
+                <input type="text" id="subprojectName" class="form-control" required placeholder="Unesite naziv podprojekta">
+            </div>
+            
+            <div class="form-group">
+                <label for="subprojectDescription">Opis podprojekta</label>
+                <textarea id="subprojectDescription" class="form-control" rows="2" placeholder="Unesite opis podprojekta"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="subprojectStart">Početak podprojekta</label>
+                <input type="datetime-local" id="subprojectStart" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="subprojectDeadline">Rok završetka</label>
+                <input type="datetime-local" id="subprojectDeadline" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="subprojectPriority">Prioritet</label>
+                <select id="subprojectPriority" class="form-control">
+                    <option value="Visok">Visok</option>
+                    <option value="Srednji">Srednji</option>
+                    <option value="Nizak">Nizak</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="addToHabitTracker" checked style="width: 18px; height: 18px;">
+                    <label for="addToHabitTracker" style="margin-bottom: 0; cursor: pointer;">Dodaj u Habit Tracker</label>
+                </div>
+                <small style="color: #888; font-size: 11px;">Podprojekt će se automatski dodati u Habit Tracker kao zadatak za praćenje.</small>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeSubprojectModal()">Odustani</button>
+                <button type="submit" class="btn btn-primary">Dodaj podprojekt</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for calendar day tasks -->
+<div class="modal" id="calendarDayModal">
+    <div class="modal-content">
+        <h2 style="margin-top: 0; color: var(--future-purple);"><i class="fas fa-calendar-day"></i> Zadaci za <span id="modalDayTitle"></span></h2>
+        
+        <div class="task-list" id="dayTasksList">
+            <!-- Tasks will be populated by JavaScript -->
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h3 style="color: var(--main-green); font-size: 14px; margin-bottom: 10px;">Dodaj novi zadatak</h3>
+            <div class="form-group">
+                <input type="text" id="newTaskName" class="form-control" placeholder="Naziv zadatka" style="margin-bottom: 10px;">
+                <select id="newTaskProject" class="form-control" style="margin-bottom: 10px;">
+                    <option value="">Odaberite projekt</option>
+                    <!-- Project options will be populated -->
+                </select>
+                <button class="btn btn-purple" onclick="addTaskToDay()" style="width: 100%;">
+                    <i class="fas fa-plus"></i> Dodaj zadatak
+                </button>
+            </div>
+        </div>
+        
+        <div class="modal-actions">
+            <button type="button" class="btn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeCalendarDayModal()">Zatvori</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for time tracking -->
+<div class="modal" id="timeTrackModal">
+    <div class="modal-content">
+        <h2 style="margin-top: 0; color: var(--blue-accent);"><i class="fas fa-clock"></i> Evidencija vremena - <span id="timeProjectName"></span></h2>
+        
+        <div class="form-group">
+            <label for="timeTrackHours">Broj sati</label>
+            <input type="number" id="timeTrackHours" class="form-control" min="0.5" max="100" step="0.5" value="1">
+        </div>
+        
+        <div class="form-group">
+            <label for="timeTrackDate">Datum</label>
+            <input type="date" id="timeTrackDate" class="form-control" value="2026-01-15">
+        </div>
+        
+        <div class="form-group">
+            <label for="timeTrackDescription">Opis rada</label>
+            <textarea id="timeTrackDescription" class="form-control" rows="3" placeholder="Šta ste radili..."></textarea>
+        </div>
+        
+        <div class="task-list" id="timeTrackHistory" style="max-height: 200px;">
+            <!-- History will be populated -->
+        </div>
+        
+        <div class="modal-actions">
+            <button type="button" class="btn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeTimeTrackModal()">Odustani</button>
+            <button type="button" class="btn btn-primary" onclick="saveTimeTracking()">Spremi vrijeme</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Main Data Structures
+    let projects = [];
+    let habits = [];
+    let calendarEvents = {};
+    let timeTracking = {};
+    
+    // Current state
+    let currentMonth = 0; // January (0-indexed)
+    let currentYear = 2026;
+    let currentHabitMonth = 0; // January
+    let currentHabitYear = 2026;
+    let selectedProjectForSubproject = null;
+    let selectedDayForCalendar = null;
+    let selectedProjectForTimeTracking = null;
+
+    // DOM Elements
+    const projectsTable = document.getElementById('projectsTable').getElementsByTagName('tbody')[0];
+    const projectModal = document.getElementById('projectModal');
+    const projectForm = document.getElementById('projectForm');
+    const progressValue = document.getElementById('progressValue');
+    const projectProgress = document.getElementById('projectProgress');
+    const projectFilter = document.getElementById('projectFilter');
+    const exportExcelBtn = document.getElementById('exportExcel');
+    const addProjectBtn = document.getElementById('addProjectBtn');
+    const cancelProjectBtn = document.getElementById('cancelProject');
+    const sortByDateBtn = document.getElementById('sortByDate');
+    const sortByProgressBtn = document.getElementById('sortByProgress');
+    const currentDateElement = document.getElementById('currentDate');
+    const calendarGrid = document.getElementById('calendarGrid');
+    
+    // Habit Tracker Elements
+    const habitProjectFilter = document.getElementById('habitProjectFilter');
+    const habitMonthSelect = document.getElementById('habitMonthSelect');
+    const habitYearSelect = document.getElementById('habitYearSelect');
+    const newHabitTask = document.getElementById('newHabitTask');
+    const habitMonthDisplay = document.getElementById('habitMonthDisplay');
+    const improvedHabitGrid = document.getElementById('improvedHabitGrid');
+    const monthlyCompletion = document.getElementById('monthlyCompletion');
+    const totalTasks = document.getElementById('totalTasks');
+    const completedDays = document.getElementById('completedDays');
+    const consistency = document.getElementById('consistency');
+    
+    // Modals
+    const subprojectModal = document.getElementById('subprojectModal');
+    const subprojectForm = document.getElementById('subprojectForm');
+    const calendarDayModal = document.getElementById('calendarDayModal');
+    const timeTrackModal = document.getElementById('timeTrackModal');
+
+    // Initialize Dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set current date
+        const now = new Date(2026, 0, 15); // Fixed to 2026 for demo
+        currentDateElement.textContent = now.toLocaleDateString('hr-HR', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        });
+
+        // Load from localStorage
+        loadData();
+        
+        // Initialize UI
+        renderProjects();
+        renderCalendar();
+        renderImprovedHabitTracker();
+        
+        // Update KPIs
+        updateKPICards();
+        
+        // Initialize event listeners
+        initEventListeners();
+        
+        // Set default datetime values
+        setDefaultDateTimeValues();
+    });
+
+    // Set default datetime values
+    function setDefaultDateTimeValues() {
+        const now = new Date(2026, 0, 15, 9, 0);
+        const tomorrow = new Date(2026, 0, 30, 17, 0);
+        
+        // Format for datetime-local input
+        function formatDateTimeLocal(date) {
+            return date.toISOString().slice(0, 16);
+        }
+        
+        // Project form defaults
+        document.getElementById('projectStart').value = formatDateTimeLocal(now);
+        document.getElementById('projectEnd').value = formatDateTimeLocal(tomorrow);
+        
+        // Subproject form defaults
+        document.getElementById('subprojectStart').value = formatDateTimeLocal(now);
+        document.getElementById('subprojectDeadline').value = formatDateTimeLocal(tomorrow);
+        
+        // Time tracking default
+        document.getElementById('timeTrackDate').value = "2026-01-15";
+    }
+
+    // Load data from localStorage
+    function loadData() {
+        const savedProjects = localStorage.getItem('projects2026');
+        const savedHabits = localStorage.getItem('habits2026');
+        const savedTimeTracking = localStorage.getItem('timeTracking2026');
+        
+        if (savedProjects) {
+            projects = JSON.parse(savedProjects);
+        }
+        
+        if (savedHabits) {
+            habits = JSON.parse(savedHabits);
+        } else {
+            // Initialize with sample habits
+            initializeSampleHabits();
+        }
+        
+        if (savedTimeTracking) {
+            timeTracking = JSON.parse(savedTimeTracking);
+        } else {
+            timeTracking = {};
+        }
+        
+        // Initialize calendar events
+        updateCalendarEvents();
+        
+        // Update project filter in habit tracker
+        updateHabitProjectFilter();
+    }
+
+    // Update habit project filter dropdown
+    function updateHabitProjectFilter() {
+        habitProjectFilter.innerHTML = '<option value="all">Svi projekti</option>';
+        projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project.id;
+            option.textContent = project.name;
+            habitProjectFilter.appendChild(option);
+        });
+    }
+
+    // Save data to localStorage
+    function saveData() {
+        localStorage.setItem('projects2026', JSON.stringify(projects));
+        localStorage.setItem('habits2026', JSON.stringify(habits));
+        localStorage.setItem('timeTracking2026', JSON.stringify(timeTracking));
+    }
+
+    // Initialize sample habits
+    function initializeSampleHabits() {
+        habits = [
+            {
+                id: 1,
+                name: '🌅 Morning Routine',
+                description: 'Dnevna jutarnja rutina',
+                category: 'Osobni',
+                color: '#667eea',
+                projectId: null,
+                projectName: null,
+                days: {}
+            },
+            {
+                id: 2,
+                name: '💼 Rad na projektu',
+                description: 'Najmanje 2h fokusiranog rada',
+                category: 'Posao',
+                color: '#00ff88',
+                projectId: null,
+                projectName: null,
+                days: {}
+            }
+        ];
+        
+        saveData();
+    }
+
+    // Update calendar events from projects and tasks
+    function updateCalendarEvents() {
+        calendarEvents = {};
+        
+        // Add project start dates
+        projects.forEach(project => {
+            const startDate = project.start.split('T')[0];
+            if (!calendarEvents[startDate]) {
+                calendarEvents[startDate] = [];
+            }
+            calendarEvents[startDate].push({
+                name: `Početak: ${project.name}`,
+                projectId: project.id,
+                projectName: project.name,
+                type: 'project_start'
+            });
+            
+            // Add project end dates
+            const endDate = project.end.split('T')[0];
+            if (endDate !== startDate) {
+                if (!calendarEvents[endDate]) {
+                    calendarEvents[endDate] = [];
+                }
+                calendarEvents[endDate].push({
+                    name: `Rok: ${project.name}`,
+                    projectId: project.id,
+                    projectName: project.name,
+                    type: 'project_end'
+                });
+            }
+        });
+        
+        // Add subproject dates
+        projects.forEach(project => {
+            if (project.subprojects) {
+                project.subprojects.forEach(subproject => {
+                    if (subproject.start) {
+                        const subStartDate = subproject.start.split('T')[0];
+                        if (!calendarEvents[subStartDate]) {
+                            calendarEvents[subStartDate] = [];
+                        }
+                        calendarEvents[subStartDate].push({
+                            name: `Podprojekt: ${subproject.name}`,
+                            projectId: project.id,
+                            projectName: project.name,
+                            subprojectId: subproject.id,
+                            type: 'subproject_start'
+                        });
+                    }
+                    
+                    if (subproject.deadline) {
+                        const subDeadline = subproject.deadline.split('T')[0];
+                        if (!calendarEvents[subDeadline]) {
+                            calendarEvents[subDeadline] = [];
+                        }
+                        calendarEvents[subDeadline].push({
+                            name: `Rok podprojekta: ${subproject.name}`,
+                            projectId: project.id,
+                            projectName: project.name,
+                            subprojectId: subproject.id,
+                            type: 'subproject_deadline'
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    // Render projects table with time tracking
+    function renderProjects() {
+        projectsTable.innerHTML = '';
+        
+        let filteredProjects = [...projects];
+        const filterValue = projectFilter.value;
+        
+        if (filterValue !== 'all') {
+            filteredProjects = filteredProjects.filter(p => p.status === filterValue);
+        }
+        
+        if (filteredProjects.length === 0) {
+            const row = projectsTable.insertRow();
+            row.innerHTML = `
+                <td colspan="7" style="text-align: center; padding: 30px; color: #777;">
+                    <i class="fas fa-folder-open" style="font-size: 24px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>
+                    Nema projekata.
+                </td>
+            `;
+            return;
+        }
+        
+        filteredProjects.forEach(project => {
+            const row = projectsTable.insertRow();
+            
+            // Calculate subprojects count
+            const subprojectsCount = project.subprojects ? project.subprojects.length : 0;
+            
+            // Calculate total time spent
+            const totalTime = project.timeSpent ? project.timeSpent.reduce((sum, entry) => sum + entry.hours, 0) : 0;
+            
+            // Status styling
+            let statusClass, statusText;
+            switch(project.status) {
+                case 'running':
+                    statusClass = 'status-running';
+                    statusText = 'Aktivan';
+                    break;
+                case 'upcoming':
+                    statusClass = 'status-upcoming';
+                    statusText = 'Nadolazeći';
+                    break;
+                case 'completed':
+                    statusClass = 'status-completed';
+                    statusText = 'Završen';
+                    break;
+            }
+            
+            // Format dates with time
+            const startDate = new Date(project.start);
+            const endDate = new Date(project.end);
+            const startFormatted = startDate.toLocaleDateString('hr-HR') + ' ' + startDate.toLocaleTimeString('hr-HR', {hour: '2-digit', minute:'2-digit'});
+            const endFormatted = endDate.toLocaleDateString('hr-HR') + ' ' + endDate.toLocaleTimeString('hr-HR', {hour: '2-digit', minute:'2-digit'});
+            
+            row.innerHTML = `
+                <td>
+                    <div class="project-name-link" onclick="openSubprojectModal(${project.id})" style="cursor: pointer;">
+                        <strong>${project.name}</strong>
+                        <div style="font-size: 11px; color: #888; margin-top: 2px;">
+                            <i class="fas fa-sitemap"></i> ${subprojectsCount} podprojekta
+                        </div>
+                    </div>
+                    <div style="font-size: 11px; color: #aaa; margin-top: 3px;">${project.description || 'Nema opisa'}</div>
+                </td>
+                <td>${startFormatted}</td>
+                <td>${endFormatted}</td>
+                <td>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${project.progress}%"></div>
+                    </div>
+                    <div style="font-size: 11px; margin-top: 4px; color: ${project.progress > 70 ? '#00ff88' : project.progress > 30 ? '#ffaa00' : '#ff5555'}">
+                        ${project.progress}%
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size: 14px; font-weight: 600; color: var(--blue-accent);">${totalTime}h</div>
+                    <button class="time-track-btn" onclick="openTimeTrackModal(${project.id})" style="margin-top: 4px;">
+                        <i class="fas fa-plus"></i> Dodaj vrijeme
+                    </button>
+                </td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="action-btn" onclick="editProject(${project.id})" style="font-size: 10px; padding: 4px 8px;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn" onclick="deleteProject(${project.id})" style="font-size: 10px; padding: 4px 8px; background: rgba(255, 85, 85, 0.2); color: #ff5555;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+        });
+    }
+
+    // Render calendar with purple dots
+    function renderCalendar() {
+        calendarGrid.innerHTML = '';
+        
+        const monthNames = ["SIJEČANJ", "VELJAČA", "OŽUJAK", "TRAVANJ", "SVIBANJ", "LIPANJ", 
+                           "SRPANJ", "KOLOVOZ", "RUJAN", "LISTOPAD", "STUDENI", "PROSINAC"];
+        
+        // Update month/year display
+        document.getElementById('currentMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        
+        // Add day headers
+        const days = ['PON', 'UTO', 'SRI', 'ČET', 'PET', 'SUB', 'NED'];
+        days.forEach(day => {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'cal-day-header';
+            dayElement.textContent = day;
+            calendarGrid.appendChild(dayElement);
+        });
+        
+        // Get first day of month
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+        
+        // Get number of days in month
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        
+        // Add empty cells for days before first day of month
+        for (let i = 0; i < startDay; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'cal-day';
+            calendarGrid.appendChild(emptyCell);
+        }
+        
+        // Add days of month
+        const today = new Date(2026, 0, 15); // Fixed to 2026-01-15 for demo
+        const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayElement = document.createElement('div');
+            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            const hasEvents = calendarEvents[dateStr];
+            const isToday = isCurrentMonth && day === today.getDate();
+            
+            dayElement.className = 'cal-day';
+            if (isToday) dayElement.classList.add('today');
+            if (hasEvents) dayElement.classList.add('has-event');
+            
+            dayElement.innerHTML = `<strong>${day}</strong>`;
+            
+            if (hasEvents) {
+                // Add purple dot for events
+                const dot = document.createElement('div');
+                dot.className = 'event-dot';
+                dayElement.appendChild(dot);
+            }
+            
+            // Add click event
+            dayElement.onclick = () => openCalendarDayModal(dateStr, day);
+            calendarGrid.appendChild(dayElement);
+        }
+    }
+
+    // Open calendar day modal
+    function openCalendarDayModal(dateStr, day) {
+        selectedDayForCalendar = dateStr;
+        
+        const date = new Date(dateStr);
+        const dayName = ['Nedjelja', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota'][date.getDay()];
+        document.getElementById('modalDayTitle').textContent = `${dayName}, ${day}. ${currentMonth + 1}. ${currentYear}.`;
+        
+        // Populate tasks for this day
+        const tasksList = document.getElementById('dayTasksList');
+        tasksList.innerHTML = '';
+        
+        const events = calendarEvents[dateStr] || [];
+        
+        if (events.length === 0) {
+            tasksList.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #777;">
+                    <i class="fas fa-calendar-times" style="font-size: 24px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>
+                    Nema zadataka za ovaj dan.
+                </div>
+            `;
+        } else {
+            events.forEach(event => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                
+                let icon = '📋';
+                if (event.type === 'project_start') icon = '🚀';
+                if (event.type === 'project_end') icon = '🏁';
+                if (event.type === 'subproject_start') icon = '📌';
+                if (event.type === 'subproject_deadline') icon = '⏰';
+                
+                taskItem.innerHTML = `
+                    <div>
+                        <strong>${icon} ${event.name}</strong>
+                        <div style="font-size: 11px; color: #aaa;">Projekt: ${event.projectName}</div>
+                    </div>
+                    <div>
+                        <button class="action-btn" onclick="editCalendarTask('${dateStr}', ${event.projectId}, '${event.type}')" style="font-size: 10px;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                `;
+                tasksList.appendChild(taskItem);
+            });
+        }
+        
+        // Populate project dropdown for new task
+        const projectSelect = document.getElementById('newTaskProject');
+        projectSelect.innerHTML = '<option value="">Odaberite projekt</option>';
+        projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project.id;
+            option.textContent = project.name;
+            projectSelect.appendChild(option);
+        });
+        
+        calendarDayModal.style.display = 'flex';
+    }
+
+    // Close calendar day modal
+    function closeCalendarDayModal() {
+        calendarDayModal.style.display = 'none';
+        selectedDayForCalendar = null;
+    }
+
+    // Add task to day
+    function addTaskToDay() {
+        const taskName = document.getElementById('newTaskName').value.trim();
+        const projectId = parseInt(document.getElementById('newTaskProject').value);
+        
+        if (!taskName || !projectId) {
+            showNotification('Unesite naziv zadatka i odaberite projekt!', 'warning');
+            return;
+        }
+        
+        const project = projects.find(p => p.id === projectId);
+        if (!project) {
+            showNotification('Projekt nije pronađen!', 'error');
+            return;
+        }
+        
+        if (!calendarEvents[selectedDayForCalendar]) {
+            calendarEvents[selectedDayForCalendar] = [];
+        }
+        
+        calendarEvents[selectedDayForCalendar].push({
+            name: taskName,
+            projectId: projectId,
+            projectName: project.name,
+            type: 'task'
+        });
+        
+        // Update UI
+        openCalendarDayModal(selectedDayForCalendar, parseInt(selectedDayForCalendar.split('-')[2]));
+        
+        // Clear form
+        document.getElementById('newTaskName').value = '';
+        document.getElementById('newTaskProject').value = '';
+        
+        showNotification(`Zadatak "${taskName}" dodan za ${selectedDayForCalendar}!`, 'success');
+    }
+
+    // Open subproject modal
+    function openSubprojectModal(projectId) {
+        selectedProjectForSubproject = projectId;
+        const project = projects.find(p => p.id === projectId);
+        
+        if (!project) {
+            showNotification('Projekt nije pronađen!', 'error');
+            return;
+        }
+        
+        document.getElementById('parentProjectId').value = projectId;
+        document.getElementById('subprojectName').value = '';
+        document.getElementById('subprojectDescription').value = '';
+        
+        // Set default start to project start date
+        const startInput = document.getElementById('subprojectStart');
+        const deadlineInput = document.getElementById('subprojectDeadline');
+        
+        if (startInput && project.start) {
+            startInput.value = project.start.slice(0, 16); // Remove seconds
+        }
+        
+        if (deadlineInput && project.end) {
+            deadlineInput.value = project.end.slice(0, 16); // Remove seconds
+        }
+        
+        subprojectModal.style.display = 'flex';
+    }
+
+    // Close subproject modal
+    function closeSubprojectModal() {
+        subprojectModal.style.display = 'none';
+        subprojectForm.reset();
+        setDefaultDateTimeValues();
+    }
+
+    // Add subproject
+    function addSubproject(event) {
+        event.preventDefault();
+        
+        const projectId = parseInt(document.getElementById('parentProjectId').value);
+        const name = document.getElementById('subprojectName').value.trim();
+        const description = document.getElementById('subprojectDescription').value.trim();
+        const start = document.getElementById('subprojectStart').value;
+        const deadline = document.getElementById('subprojectDeadline').value;
+        const priority = document.getElementById('subprojectPriority').value;
+        const addToHabit = document.getElementById('addToHabitTracker').checked;
+        
+        if (!name) {
+            showNotification('Unesite naziv podprojekta!', 'warning');
+            return;
+        }
+        
+        const project = projects.find(p => p.id === projectId);
+        if (!project) {
+            showNotification('Projekt nije pronađen!', 'error');
+            return;
+        }
+        
+        // Create subproject
+        const subproject = {
+            id: Date.now(),
+            name,
+            description,
+            start,
+            deadline,
+            priority,
+            progress: 0,
+            parentProjectId: projectId,
+            parentProjectName: project.name,
+            createdAt: new Date().toISOString()
+        };
+        
+        // Add to project
+        if (!project.subprojects) {
+            project.subprojects = [];
+        }
+        project.subprojects.push(subproject);
+        
+        // Add to habit tracker if checkbox is checked
+        if (addToHabit) {
+            const newHabit = {
+                id: Date.now(),
+                name: `📋 ${name}`,
+                description: `Podprojekt: ${project.name}`,
+                category: project.category || 'Posao',
+                color: getRandomColor(),
+                subprojectId: subproject.id,
+                projectId: projectId,
+                projectName: project.name,
+                days: {}
+            };
+            habits.push(newHabit);
+        }
+        
+        saveData();
+        
+        // Update UI
+        updateCalendarEvents();
+        renderProjects();
+        renderCalendar();
+        renderImprovedHabitTracker();
+        updateKPICards();
+        
+        // Close modal
+        closeSubprojectModal();
+        
+        showNotification(`Podprojekt "${name}" dodan!`, 'success');
+    }
+
+    // IMPROVED Habit Tracker Render
+    function renderImprovedHabitTracker() {
+        // Update month display
+        const monthNames = ["Januar", "Februar", "Mart", "April", "Maj", "Juni", 
+                           "Juli", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
+        habitMonthDisplay.textContent = `${monthNames[currentHabitMonth]} ${currentHabitYear}`;
+        
+        // Get days in month
+        const daysInMonth = new Date(currentHabitYear, currentHabitMonth + 1, 0).getDate();
+        
+        // Get selected project filter
+        const selectedProjectId = habitProjectFilter.value;
+        
+        // Filter habits
+        let filteredHabits = habits;
+        if (selectedProjectId !== 'all') {
+            filteredHabits = habits.filter(h => h.projectId == selectedProjectId);
+        }
+        
+        // Clear grid
+        improvedHabitGrid.innerHTML = '';
+        
+        // Add header row - Task names
+        const headerRow = document.createElement('div');
+        headerRow.className = 'habit-cell task-name';
+        headerRow.innerHTML = `
+            <div style="font-weight: 600; color: #ddd;">ZADATAK</div>
+        `;
+        improvedHabitGrid.appendChild(headerRow);
+        
+        // Add day headers
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(currentHabitYear, currentHabitMonth, day);
+            const dayName = ['Ne', 'Po', 'Ut', 'Sr', 'Če', 'Pe', 'Su'][date.getDay()];
+            
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'habit-cell header';
+            dayHeader.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 10px; color: #888;">${dayName}</div>
+                    <div style="font-size: 14px; font-weight: 600;">${day}</div>
+                </div>
+            `;
+            improvedHabitGrid.appendChild(dayHeader);
+        }
+        
+        // Add habit rows
+        filteredHabits.forEach(habit => {
+            // Task name cell
+            const nameCell = document.createElement('div');
+            nameCell.className = 'habit-cell task-name';
+            
+            let projectBadge = '';
+            if (habit.projectName) {
+                projectBadge = `<span class="project-badge">${habit.projectName}</span>`;
+            }
+            
+            nameCell.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                    <div style="width: 4px; height: 20px; background: ${habit.color}; border-radius: 2px;"></div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center;">
+                            <div style="font-weight: 600; color: #fff; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${habit.name}">
+                                ${habit.name}
+                            </div>
+                            ${projectBadge}
+                        </div>
+                        <div style="font-size: 10px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${habit.description}">
+                            ${habit.description || ''}
+                        </div>
+                    </div>
+                    <button onclick="deleteHabit(${habit.id})" 
+                            style="background: none; border: none; color: #ff5555; cursor: pointer; font-size: 11px; flex-shrink: 0; padding: 5px;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            improvedHabitGrid.appendChild(nameCell);
+            
+            // Day cells
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentHabitYear}-${String(currentHabitMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isCompleted = habit.days && habit.days[dateStr];
+                
+                const dayCell = document.createElement('div');
+                dayCell.className = `habit-cell day ${isCompleted ? 'completed' : ''}`;
+                dayCell.onclick = () => toggleHabitDay(habit.id, dateStr);
+                
+                dayCell.innerHTML = `
+                    <div class="day-checkbox ${isCompleted ? 'checked' : ''}">
+                        ${isCompleted ? '<i class="fas fa-check"></i>' : ''}
+                    </div>
+                `;
+                
+                improvedHabitGrid.appendChild(dayCell);
+            }
+        });
+        
+        // Update stats
+        updateHabitStats();
+    }
+
+    // Toggle habit day completion
+    function toggleHabitDay(habitId, dateStr) {
+        const habit = habits.find(h => h.id === habitId);
+        if (!habit) return;
+        
+        if (!habit.days) habit.days = {};
+        
+        if (habit.days[dateStr]) {
+            delete habit.days[dateStr];
+        } else {
+            habit.days[dateStr] = true;
+        }
+        
+        saveData();
+        renderImprovedHabitTracker();
+        updateKPICards();
+    }
+
+    // Add new habit task
+    function addHabitTask() {
+        const taskName = newHabitTask.value.trim();
+        if (!taskName) {
+            showNotification('Unesite naziv zadatka!', 'warning');
+            return;
+        }
+        
+        const selectedProjectId = habitProjectFilter.value;
+        let projectName = null;
+        
+        if (selectedProjectId !== 'all') {
+            const project = projects.find(p => p.id == selectedProjectId);
+            projectName = project ? project.name : null;
+        }
+        
+        const newHabit = {
+            id: Date.now(),
+            name: taskName,
+            description: '',
+            category: 'Osobni',
+            color: getRandomColor(),
+            projectId: selectedProjectId !== 'all' ? parseInt(selectedProjectId) : null,
+            projectName: projectName,
+            days: {}
+        };
+        
+        habits.push(newHabit);
+        saveData();
+        renderImprovedHabitTracker();
+        
+        newHabitTask.value = '';
+        showNotification(`Zadatak "${taskName}" dodan!`, 'success');
+    }
+
+    // Delete habit
+    function deleteHabit(habitId) {
+        if (!confirm('Obrisati ovaj zadatak?')) return;
+        
+        const index = habits.findIndex(h => h.id === habitId);
+        if (index !== -1) {
+            const habitName = habits[index].name;
+            habits.splice(index, 1);
+            saveData();
+            renderImprovedHabitTracker();
+            showNotification(`Zadatak "${habitName}" obrisan!`, 'info');
+        }
+    }
+
+    // Update habit statistics
+    function updateHabitStats() {
+        if (habits.length === 0) {
+            monthlyCompletion.textContent = '0%';
+            totalTasks.textContent = '0';
+            completedDays.textContent = '0';
+            consistency.textContent = '0%';
+            return;
+        }
+        
+        const daysInMonth = new Date(currentHabitYear, currentHabitMonth + 1, 0).getDate();
+        let totalPossible = habits.length * daysInMonth;
+        let totalCompleted = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        
+        // Calculate stats for current month
+        habits.forEach(habit => {
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentHabitYear}-${String(currentHabitMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                if (habit.days && habit.days[dateStr]) {
+                    totalCompleted++;
+                    streak++;
+                    if (streak > maxStreak) maxStreak = streak;
+                } else {
+                    streak = 0;
+                }
+            }
+        });
+        
+        // Update displays
+        const completionRate = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+        monthlyCompletion.textContent = `${completionRate}%`;
+        totalTasks.textContent = habits.length;
+        completedDays.textContent = maxStreak;
+        consistency.textContent = `${completionRate}%`;
+    }
+
+    // Open time tracking modal
+    function openTimeTrackModal(projectId) {
+        selectedProjectForTimeTracking = projectId;
+        const project = projects.find(p => p.id === projectId);
+        
+        if (!project) {
+            showNotification('Projekt nije pronađen!', 'error');
+            return;
+        }
+        
+        document.getElementById('timeProjectName').textContent = project.name;
+        
+        // Initialize time tracking for project if not exists
+        if (!timeTracking[projectId]) {
+            timeTracking[projectId] = [];
+        }
+        
+        if (!project.timeSpent) {
+            project.timeSpent = [];
+        }
+        
+        // Populate history
+        const historyList = document.getElementById('timeTrackHistory');
+        historyList.innerHTML = '';
+        
+        const history = project.timeSpent.slice(-5).reverse(); // Show last 5 entries
+        
+        if (history.length === 0) {
+            historyList.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #777;">
+                    <i class="fas fa-history" style="font-size: 20px; margin-bottom: 10px; display: block; opacity: 0.3;"></i>
+                    Nema evidencije vremena.
+                </div>
+            `;
+        } else {
+            history.forEach(entry => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'task-item';
+                historyItem.innerHTML = `
+                    <div>
+                        <strong>${entry.hours}h</strong>
+                        <div style="font-size: 11px; color: #aaa;">${entry.date} - ${entry.description || 'Bez opisa'}</div>
+                    </div>
+                    <div style="font-size: 11px; color: #888;">
+                        ${new Date(entry.timestamp).toLocaleDateString('hr-HR')}
+                    </div>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+        
+        timeTrackModal.style.display = 'flex';
+    }
+
+    // Close time tracking modal
+    function closeTimeTrackModal() {
+        timeTrackModal.style.display = 'none';
+        selectedProjectForTimeTracking = null;
+    }
+
+    // Save time tracking
+    function saveTimeTracking() {
+        const hours = parseFloat(document.getElementById('timeTrackHours').value);
+        const date = document.getElementById('timeTrackDate').value;
+        const description = document.getElementById('timeTrackDescription').value.trim();
+        
+        if (!hours || hours <= 0) {
+            showNotification('Unesite validan broj sati!', 'warning');
+            return;
+        }
+        
+        const project = projects.find(p => p.id === selectedProjectForTimeTracking);
+        if (!project) {
+            showNotification('Projekt nije pronađen!', 'error');
+            return;
+        }
+        
+        // Create time entry
+        const timeEntry = {
+            id: Date.now(),
+            hours: hours,
+            date: date,
+            description: description,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Add to project
+        if (!project.timeSpent) {
+            project.timeSpent = [];
+        }
+        project.timeSpent.push(timeEntry);
+        
+        // Add to time tracking
+        if (!timeTracking[selectedProjectForTimeTracking]) {
+            timeTracking[selectedProjectForTimeTracking] = [];
+        }
+        timeTracking[selectedProjectForTimeTracking].push(timeEntry);
+        
+        saveData();
+        
+        // Update UI
+        renderProjects();
+        updateKPICards();
+        
+        // Clear form
+        document.getElementById('timeTrackDescription').value = '';
+        
+        // Update history
+        openTimeTrackModal(selectedProjectForTimeTracking);
+        
+        showNotification(`Dodano ${hours}h za projekt "${project.name}"!`, 'success');
+    }
+
+    // Helper functions
+    function getRandomColor() {
+        const colors = ['#667eea', '#764ba2', '#00ff88', '#ffaa00', '#ff55ff', '#00ffff', '#ff5555', '#9b59b6'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    // Update KPI cards with time spent
+    function updateKPICards() {
+        // Project stats
+        const total = projects.length;
+        const running = projects.filter(p => p.status === 'running').length;
+        const upcoming = projects.filter(p => p.status === 'upcoming').length;
+        
+        // Calculate active tasks (subprojects)
+        let activeTasks = 0;
+        projects.forEach(project => {
+            if (project.subprojects) {
+                activeTasks += project.subprojects.length;
+            }
+        });
+        
+        // Calculate total time spent
+        let totalTimeSpent = 0;
+        projects.forEach(project => {
+            if (project.timeSpent) {
+                totalTimeSpent += project.timeSpent.reduce((sum, entry) => sum + entry.hours, 0);
+            }
+        });
+        
+        // Calculate average time per project
+        const avgTime = total > 0 ? (totalTimeSpent / total).toFixed(1) : 0;
+        
+        // Calculate weekly progress from habits
+        let weeklyProgress = 0;
+        if (habits.length > 0) {
+            const today = new Date(2026, 0, 15); // Fixed for demo
+            const weekStart = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+            let weekCompleted = 0;
+            let weekTotal = 0;
+            
+            habits.forEach(habit => {
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(weekStart);
+                    date.setDate(date.getDate() + i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    
+                    weekTotal++;
+                    if (habit.days && habit.days[dateStr]) {
+                        weekCompleted++;
+                    }
+                }
+            });
+            
+            weeklyProgress = weekTotal > 0 ? Math.round((weekCompleted / weekTotal) * 100) : 0;
+        }
+        
+        // Update KPI cards
+        document.getElementById('totalProjects').textContent = total;
+        document.getElementById('runningProjects').textContent = running;
+        document.getElementById('inProgress').textContent = activeTasks;
+        document.getElementById('timeSpent').textContent = `${totalTimeSpent}h`;
+        document.getElementById('avgTime').textContent = `${avgTime}h`;
+        document.getElementById('weeklyProgress').textContent = `${weeklyProgress}%`;
+    }
+
+    // Initialize event listeners
+    function initEventListeners() {
+        // Project filter
+        projectFilter.addEventListener('change', renderProjects);
+        
+        // Export to Excel
+        exportExcelBtn.addEventListener('click', exportToExcel);
+        
+        // Add project modal
+        addProjectBtn.addEventListener('click', () => {
+            projectModal.style.display = 'flex';
+        });
+        
+        // Cancel project
+        cancelProjectBtn.addEventListener('click', () => {
+            projectModal.style.display = 'none';
+            projectForm.reset();
+            progressValue.textContent = '0%';
+            setDefaultDateTimeValues();
+        });
+        
+        // Project progress slider
+        projectProgress.addEventListener('input', function() {
+            progressValue.textContent = this.value + '%';
+        });
+        
+        // Submit project form
+        projectForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const name = document.getElementById('projectName').value;
+            const description = document.getElementById('projectDescription').value;
+            const start = document.getElementById('projectStart').value;
+            const end = document.getElementById('projectEnd').value;
+            const progress = parseInt(document.getElementById('projectProgress').value);
+            const status = document.getElementById('projectStatus').value;
+            const category = document.getElementById('projectCategory').value;
+            
+            // Create new project
+            const newProject = {
+                id: Date.now(),
+                name,
+                description,
+                start,
+                end,
+                progress,
+                status,
+                category,
+                timeSpent: [],
+                subprojects: [],
+                createdAt: new Date().toISOString()
+            };
+            
+            projects.push(newProject);
+            saveData();
+            
+            // Update UI
+            updateCalendarEvents();
+            renderProjects();
+            renderCalendar();
+            updateHabitProjectFilter();
+            updateKPICards();
+            
+            // Close modal
+            projectModal.style.display = 'none';
+            projectForm.reset();
+            progressValue.textContent = '0%';
+            setDefaultDateTimeValues();
+            
+            // Show notification
+            showNotification(`Projekt "${name}" kreiran!`, 'success');
+        });
+        
+        // Sort buttons
+        sortByDateBtn.addEventListener('click', () => {
+            projects.sort((a, b) => new Date(a.start) - new Date(b.start));
+            renderProjects();
+            showNotification('Projekti sortirani po datumu', 'info');
+        });
+        
+        sortByProgressBtn.addEventListener('click', () => {
+            projects.sort((a, b) => b.progress - a.progress);
+            renderProjects();
+            showNotification('Projekti sortirani po napretku', 'info');
+        });
+        
+        // Calendar navigation
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+        
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+        
+        // Habit tracker controls
+        habitProjectFilter.addEventListener('change', () => {
+            renderImprovedHabitTracker();
+        });
+        
+        habitMonthSelect.addEventListener('change', () => {
+            currentHabitMonth = parseInt(habitMonthSelect.value);
+            renderImprovedHabitTracker();
+        });
+        
+        habitYearSelect.addEventListener('change', () => {
+            currentHabitYear = parseInt(habitYearSelect.value);
+            renderImprovedHabitTracker();
+        });
+        
+        // Enter key for new habit
+        newHabitTask.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addHabitTask();
+            }
+        });
+        
+        // Subproject form
+        subprojectForm.addEventListener('submit', addSubproject);
+        
+        // Close modals on outside click
+        window.addEventListener('click', (e) => {
+            if (e.target === projectModal) {
+                projectModal.style.display = 'none';
+                projectForm.reset();
+                progressValue.textContent = '0%';
+                setDefaultDateTimeValues();
+            }
+            if (e.target === subprojectModal) {
+                closeSubprojectModal();
+            }
+            if (e.target === calendarDayModal) {
+                closeCalendarDayModal();
+            }
+            if (e.target === timeTrackModal) {
+                closeTimeTrackModal();
+            }
+        });
+        
+        // Set default datetime-local inputs
+        const now = new Date(2026, 0, 15, 9, 0);
+        const tomorrow = new Date(2026, 0, 30, 17, 0);
+        
+        document.getElementById('projectStart').min = "2026-01-01T00:00";
+        document.getElementById('projectStart').max = "2026-12-31T23:59";
+        document.getElementById('projectEnd').min = "2026-01-01T00:00";
+        document.getElementById('projectEnd').max = "2026-12-31T23:59";
+    }
+
+    // Edit project
+    function editProject(id) {
+        const project = projects.find(p => p.id === id);
+        if (!project) return;
+        
+        const newName = prompt('Novi naziv projekta:', project.name);
+        if (newName && newName.trim()) {
+            project.name = newName.trim();
+            saveData();
+            renderProjects();
+            updateHabitProjectFilter();
+            showNotification('Projekt ažuriran!', 'success');
+        }
+    }
+
+    // Delete project
+    function deleteProject(id) {
+        if (!confirm('Obrisati ovaj projekt? Svi podprojekti i evidencija vremena će biti obrisani.')) return;
+        
+        const index = projects.findIndex(p => p.id === id);
+        if (index !== -1) {
+            const projectName = projects[index].name;
+            
+            // Also remove related habits
+            habits = habits.filter(h => h.projectId !== id);
+            
+            // Remove from time tracking
+            delete timeTracking[id];
+            
+            projects.splice(index, 1);
+            saveData();
+            
+            updateCalendarEvents();
+            renderProjects();
+            renderCalendar();
+            renderImprovedHabitTracker();
+            updateKPICards();
+            updateHabitProjectFilter();
+            
+            showNotification(`Projekt "${projectName}" obrisan!`, 'info');
+        }
+    }
+
+    // Export to Excel
+    function exportToExcel() {
+        if (projects.length === 0 && habits.length === 0) {
+            showNotification('Nema podataka za izvoz!', 'warning');
+            return;
+        }
+        
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+        
+        // Projects sheet
+        const projectsData = [
+            ['Projekt', 'Opis', 'Početak', 'Završetak', 'Napredak', 'Status', 'Kategorija', 'Broj podprojekata', 'Utrošeno vrijeme (h)'],
+            ...projects.map(p => {
+                const totalTime = p.timeSpent ? p.timeSpent.reduce((sum, entry) => sum + entry.hours, 0) : 0;
+                return [
+                    p.name,
+                    p.description || '',
+                    new Date(p.start).toLocaleString('hr-HR'),
+                    new Date(p.end).toLocaleString('hr-HR'),
+                    p.progress + '%',
+                    p.status === 'running' ? 'Aktivan' : p.status === 'upcoming' ? 'Nadolazeći' : 'Završen',
+                    p.category,
+                    p.subprojects ? p.subprojects.length : 0,
+                    totalTime
+                ];
+            })
+        ];
+        
+        const projectsSheet = XLSX.utils.aoa_to_sheet(projectsData);
+        XLSX.utils.book_append_sheet(wb, projectsSheet, 'Projekti');
+        
+        // Time tracking sheet
+        const timeData = [
+            ['Projekt', 'Datum', 'Sati', 'Opis', 'Datum unosa'],
+            ...Object.entries(timeTracking).flatMap(([projectId, entries]) => {
+                const project = projects.find(p => p.id == projectId);
+                if (!project) return [];
+                
+                return entries.map(entry => [
+                    project.name,
+                    entry.date,
+                    entry.hours,
+                    entry.description || '',
+                    new Date(entry.timestamp).toLocaleString('hr-HR')
+                ]);
+            })
+        ];
+        
+        if (timeData.length > 1) {
+            const timeSheet = XLSX.utils.aoa_to_sheet(timeData);
+            XLSX.utils.book_append_sheet(wb, timeSheet, 'Evidencija vremena');
+        }
+        
+        // Habits sheet
+        const habitsData = [
+            ['Zadatak', 'Opis', 'Kategorija', 'Projekt', 'Dana u mjesecu', 'Završeno dana', 'Postotak'],
+            ...habits.map(h => {
+                const totalDays = 30; // Approximate
+                const completedDays = Object.values(h.days || {}).filter(Boolean).length;
+                const percentage = totalDays > 0 ? ((completedDays / totalDays) * 100).toFixed(1) + '%' : '0%';
+                
+                return [h.name, h.description || '', h.category, h.projectName || 'Svi', totalDays, completedDays, percentage];
+            })
+        ];
+        
+        const habitsSheet = XLSX.utils.aoa_to_sheet(habitsData);
+        XLSX.utils.book_append_sheet(wb, habitsSheet, 'Habit Tracker');
+        
+        // Save file
+        const fileName = `Project_Export_${new Date().toISOString().slice(0,10)}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showNotification(`Podaci izvezeni u ${fileName}`, 'success');
+    }
+
+    // Show notification
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        
+        // Set color based on type
+        let bgColor, icon;
+        switch(type) {
+            case 'success':
+                bgColor = 'linear-gradient(135deg, #00ff88, #00cc66)';
+                icon = '✅';
+                break;
+            case 'warning':
+                bgColor = 'linear-gradient(135deg, #ffaa00, #ff8800)';
+                icon = '⚠️';
+                break;
+            case 'error':
+                bgColor = 'linear-gradient(135deg, #ff5555, #cc0000)';
+                icon = '❌';
+                break;
+            default:
+                bgColor = 'linear-gradient(135deg, #667eea, #764ba2)';
+                icon = '💡';
+        }
+        
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${bgColor};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.2);
+        `;
+        
+        notification.innerHTML = `
+            <span style="font-size: 18px;">${icon}</span>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateY(10px)';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+    
+    // Add CSS animation for notification
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+</body>
+</html>
